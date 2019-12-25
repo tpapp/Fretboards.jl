@@ -19,7 +19,7 @@ Base.:-(note::Note, semitones::Semitones) = Note(note.semitones - semitones.semi
 
 Base.:-(note1::Note, note2::Note) = Semitones(note1.semitones - note2.semitones)
 
-≅(note1::Note, note2::Note) = mod(note1.semitones, 12) == mod(note2.semitones)
+≅(note1::Note, note2::Note) = mod(note1.semitones, 12) == mod(note2.semitones, 12)
 
 const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F",
                     "F♯", "G", "G♯", "A", "A♯", "B"]
