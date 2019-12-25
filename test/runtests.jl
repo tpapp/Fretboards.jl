@@ -42,3 +42,9 @@ end
     @test note"A♯" ≅ note"A♯-1" ≅ note"A♯2"
     @test !(note"C" ≅ note"D")
 end
+
+@testset "fretboard basics" begin
+    @test fret_position(9) ≈ 0.405396 atol = 1e-5
+    @test fret_position(12) == 0.5
+    @test fret_position(19) ≈ 0.666290 atol = 1e-5
+end
