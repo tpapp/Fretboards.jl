@@ -3,9 +3,13 @@ struct Note
     semitones::Int
 end
 
+Broadcast.broadcastable(note::Note) = Ref(note)
+
 struct Semitones
     semitones::Int
 end
+
+Broadcast.broadcastable(semitones::Semitones) = Ref(semitones)
 
 # FIXME hash equality
 
@@ -21,11 +25,11 @@ const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F",
                     "F♯", "G", "G♯", "A", "A♯", "B"]
 
 function Base.show(io::IO, note::Note)
-    octave, rel_semitone = fldmod(note.semitones)
-    print(io, "note", NOTE_NAMES[rel_semitone], octave)
+    octave, rel_semitone = fldmod(note.semitones, 12)
+    print(io, "note\"", NOTE_NAMES[rel_semitone + 1], octave, "\"")
 end
 
-const LETTER_REL_SEMITONES = [0, 2, 4, 5, 7, 9, 11]
+const MAJOR_SCALE_SEMITONES = [0, 2, 4, 5, 7, 9, 11]
 
 """
 $(SIGNATURES)
@@ -41,16 +45,23 @@ Parse a note in [scientific pitch notation](https://en.wikipedia.org/wiki/Scient
 Example arguments: "C#2", "D♭-2" `.
 """
 function parse_note(str::AbstractString)
-    m = match(r"([a-gA-G])([b#]?)(-?[0-9]*)", "C#12")
+    m = match(r"^([a-gA-G])([b♭#♯]?)(-?[0-9]*)$", str)
     @argcheck m ≢ nothing "Could not parse $str as a valid note."
-    rel_semitone = LETTER_REL_SEMITONES[uppercase(first(m.captures[1])) - 'A']
-    accidental = first(m.capturers[2])
-    if accidental == '#' || accidental == '♯'
-        rel_semitone += 1
-    elseif accidental == 'b' || accidental == '♭'
-        rel_semitone -= 1
+    _semitone, _accidental, _octave = m.captures
+    major_tone = uppercase(first(_semitone)) - 'C' + 1
+    if major_tone < 1
+        major_tone += 7
     end
-    octave = parse(Int, m.captures[3])
+    rel_semitone = MAJOR_SCALE_SEMITONES[major_tone]
+    if !isempty(_accidental)
+        accidental = first(_accidental)
+        if accidental == '#' || accidental == '♯'
+            rel_semitone += 1
+        elseif accidental == 'b' || accidental == '♭'
+            rel_semitone -= 1
+        end
+    end
+    octave = isempty(_octave) ? 0 : parse(Int, _octave)
     Note(octave * 12 + rel_semitone)
 end
 

@@ -1,4 +1,4 @@
-name = "FretBoard"
+name = "FretBoards"
 uuid = "ccff39cb-adf9-4117-873b-a3f804b23ebe"
 authors = ["Tamas K. Papp <tkpapp@gmail.com>"]
 version = "0.1.0"
