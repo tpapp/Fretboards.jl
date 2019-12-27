@@ -1,4 +1,4 @@
-module FretBoards
+module Fretboards
 
 export
     # notes
@@ -6,7 +6,6 @@ export
     # fretboard
     FretBoard, STANDARD_TUNING, fret_position, char_fretboard_canvas
 
-using PGFPlotsX
 using ArgCheck: @argcheck
 using DocStringExtensions: SIGNATURES
 using UnPack: @unpack

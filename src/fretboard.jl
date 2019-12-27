@@ -1,4 +1,4 @@
-struct FretBoard
+struct Fretboard
     "Tuning of strings, from lowest to highest."
     tuning::Vector{Note}
     "Number of frets to display."
@@ -13,8 +13,8 @@ fret_position(semitones::Integer) = 1 - 0.5^(semitones / 12)
 #### character-based fretboard drawing
 ####
 
-struct CharFretBoardCanvas
-    fretboard::FretBoard
+struct CharFretboardCanvas
+    fretboard::Fretboard
     "Canvas for drawing. First axis: strings in the same order as the tuning."
     canvas::Matrix{Char}
     offset::Int
@@ -22,7 +22,7 @@ struct CharFretBoardCanvas
     legend::Vector{String}
 end
 
-function char_fretboard_canvas(fretboard::FretBoard;
+function char_fretboard_canvas(fretboard::Fretboard;
                                padding_left = 2,
                                spacing = 6,
                                extra_string_left = spacing ÷ 2,
@@ -40,10 +40,10 @@ function char_fretboard_canvas(fretboard::FretBoard;
             canvas[i, offset + j * spacing] = '|'
         end
     end
-    CharFretBoardCanvas(fretboard, canvas, offset, spacing, String[])
+    CharFretboardCanvas(fretboard, canvas, offset, spacing, String[])
 end
 
-function Base.show(io::IO, fretboard_canvas::CharFretBoardCanvas)
+function Base.show(io::IO, fretboard_canvas::CharFretboardCanvas)
     @unpack canvas, legend = fretboard_canvas
     for i in reverse(axes(canvas, 1))
         for j in axes(canvas, 2)

@@ -1,5 +1,5 @@
-using FretBoards
-using FretBoards: parse_note
+using Fretboards
+using Fretboards: parse_note
 using Test
 
 @testset "note parsing and representation" begin
