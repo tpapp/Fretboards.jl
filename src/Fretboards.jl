@@ -4,7 +4,7 @@ export
     # notes
     Note, Semitones, ≅, @note_str,
     # fretboard
-    FretBoard, STANDARD_TUNING, fret_position, char_fretboard_canvas
+    Fretboard, STANDARD_TUNING, fret_position, char_fretboard_canvas
 
 using ArgCheck: @argcheck
 using DocStringExtensions: SIGNATURES
