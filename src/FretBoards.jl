@@ -4,7 +4,7 @@ export
     # notes
     Note, Semitones, ≅, @note_str,
     # fretboard
-    FretBoard, STANDARD_TUNING, fret_position
+    FretBoard, STANDARD_TUNING, fret_position, char_fretboard_canvas
 
 using PGFPlotsX
 using ArgCheck: @argcheck

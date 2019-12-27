@@ -24,9 +24,13 @@ Base.:-(note1::Note, note2::Note) = Semitones(note1.semitones - note2.semitones)
 const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F",
                     "F♯", "G", "G♯", "A", "A♯", "B"]
 
-function Base.show(io::IO, note::Note)
+function Base.string(note::Note)
     octave, rel_semitone = fldmod(note.semitones, 12)
-    print(io, "note\"", NOTE_NAMES[rel_semitone + 1], octave, "\"")
+    NOTE_NAMES[rel_semitone + 1] * string(octave)
+end
+
+function Base.show(io::IO, note::Note)
+    print(io, "note\"", string(note), "\"")
 end
 
 const MAJOR_SCALE_SEMITONES = [0, 2, 4, 5, 7, 9, 11]
