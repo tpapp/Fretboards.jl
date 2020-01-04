@@ -1,29 +1,95 @@
+export Fretboard, get_tuning, get_frets, STANDARD_TUNING, OPEN_D_TUNING, fret_position,
+    char_fretboard_canvas, annotate_fret!, annotate_matches!, AnnotatePitchClass,
+    annotate_chord!
+
+"""
+Abstract description of a fretboard.
+
+# Fields
+
+$(FIELDS)
+"""
 struct Fretboard
     "Tuning of strings, from lowest to highest."
     tuning::Vector{Note}
-    "Number of frets to display."
+    "Number of frets."
     frets::Int
 end
 
+"""
+$(SIGNATURES)
+
+Return the number of frets (indexing for which starts at `0`).
+"""
+get_frets(fretboard::Fretboard) = fretboard.frets
+
+"""
+$(SIGNATURES)
+
+Return the tuning, as a vector of `Note`s.
+"""
+get_tuning(fretboard::Fretboard) = fretboard.tuning
+
+"""
+Standard tuning for 6-string guitar.
+"""
 const STANDARD_TUNING = [note"E2", note"A2", note"D3", note"G3", note"B3", note"E4"]
 
-fret_position(semitones::Integer) = 1 - 0.5^(semitones / 12)
+"""
+Open D tuning for 6-string guitar.
+"""
+const OPEN_D_TUNING = [note"D2", note"A2", note"D3", note"F♯3", note"A3", note"D4"]
+
+"""
+Abstract type for fretboard canvases, used only for code organization, not part of the API.
+"""
+abstract type FretboardCanvas end
+
+get_frets(fbc::FretboardCanvas) = get_frets(fbc.fretboard)
+
+get_tuning(fbc::FretboardCanvas) = get_tuning(fbc.fretboard)
 
 ####
 #### character-based fretboard drawing
 ####
 
-struct CharFretboardCanvas
+"""
+$(TYPEDEF)
+
+Character-based canvas for drawing fretboards.
+"""
+struct CharFretboardCanvas <: FretboardCanvas
+    "The underlying fretboard."
     fretboard::Fretboard
-    "Canvas for drawing. First axis: strings in the same order as the tuning."
+    """
+    Canvas for drawing (a matrix of characters).
+
+    First axis: strings in the same order as the tuning.
+
+    Second axis: characters. Use various annotation functions to overwrite.
+    """
     canvas::Matrix{Char}
+    "Character for first fret."
     offset::Int
+    "Spacing between frets."
     spacing::Int
+    "Additional legend strings that can be added."
     legend::Vector{String}
 end
 
+"""
+$(TYPEDEF)
+
+Characters for drawing a [`CharFretboarCanvas`](@ref).
+
+# Fields
+
+$(FIELDS)
+"""
 struct DrawingChars
+    "For drawing strings between frets."
     string::Char
+    "For drawing fret-string crossings."
     fret::Char
 end
 
@@ -31,22 +97,27 @@ const UNICODE_CHARS = DrawingChars('─','┼')
 
 const ASCII_CHARS = DrawingChars('-', '|')
 
+"""
+$(SIGNATURES)
+
+Make a blank fretboard canvas from a `fretboard`.
+"""
 function char_fretboard_canvas(fretboard::Fretboard;
-                               padding_left = 2,
                                spacing = 6,
-                               extra_string_left = spacing ÷ 2,
-                               extra_string_right = extra_string_left,
+                               padding_left = max(spacing ÷ 2, 3),
+                               extra_string_left = 0,
+                               extra_string_right = spacing ÷ 2,
                                drawing_chars = ASCII_CHARS)
     @unpack tuning, frets = fretboard
     open_strings = string.(tuning)
-    string_start = maximum(length, open_strings) + padding_left
+    string_start = maximum(length, open_strings) + padding_left + 1
     offset = string_start + extra_string_left
     canvas = fill(' ', length(tuning),
-                  offset + spacing * (frets - 1) + extra_string_right)
+                  offset + spacing * frets + extra_string_right)
     for (i, open_string) in enumerate(open_strings)
         copyto!(@view(canvas[i, 1:length(open_string)]), open_string)
         canvas[i, string_start:end] .= drawing_chars.string
-        for j in 0:(frets - 1)
+        for j in 0:frets
             canvas[i, offset + j * spacing] = drawing_chars.fret
         end
     end
@@ -65,3 +136,59 @@ function Base.show(io::IO, fretboard_canvas::CharFretboardCanvas)
         println(io, legend)
     end
 end
+
+function _annotate_fret!(canvas_line::AbstractVector, fretboard_canvas, fret::Integer,
+                         text::AbstractString)
+    @unpack offset, spacing, fretboard = fretboard_canvas
+    @argcheck 0 ≤ fret ≤ fretboard.frets
+    fret_char = offset + spacing * fret
+    annotation_offset = fret_char - length(text) ÷ 2 - 1
+    for (i, c) in enumerate(text)
+        canvas_line[annotation_offset + i] = c
+    end
+    nothing
+end
+
+function annotate_fret!(fretboard_canvas::CharFretboardCanvas, string::Integer,
+                        fret::Integer, text::AbstractString)
+    _annotate_fret!(@view(fretboard_canvas.canvas[string, :]), fretboard_canvas, fret, text)
+end
+
+function annotate_matches!(f, fretboard_canvas::CharFretboardCanvas)
+    for (string, open_note) in enumerate(get_tuning(fretboard_canvas))
+        for fret in 0:get_frets(fretboard_canvas)
+            annotation = f(string, open_note, open_note + Semitones(fret))
+            if !isnothing(annotation)
+                annotate_fret!(fretboard_canvas, string, fret, annotation)
+            end
+        end
+    end
+    fretboard_canvas
+end
+
+struct AnnotatePitchClass{T}
+    note::Note
+    annotation::T
+end
+
+(a::AnnotatePitchClass)(_, _, note) = a.note ≂ note ? a.annotation : nothing
+
+function annotate_chord!(fretboard_canvas::CharFretboardCanvas, base_note, chord)
+    for interval in chord
+        annotate_matches!(AnnotatePitchClass(base_note + interval.semitones,
+                                             "(" * interval.label * ")"),
+                          fretboard_canvas)
+    end
+    fretboard_canvas
+end
+
+####
+#### graphical fretboard drawing (WIP)
+####
+
+"""
+$(SIGNATURES)
+
+Fret position from the 0th fret, as a fraction of the whole string length.
+"""
+fret_position(semitones::Integer) = 1 - 0.5^(semitones / 12)
