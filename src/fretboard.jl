@@ -11,7 +11,7 @@ $(FIELDS)
 """
 struct Fretboard
     "Tuning of strings, from lowest to highest."
-    tuning::Vector{Note}
+    tuning::Vector{Pitch}
     "Number of frets."
     frets::Int
 end
@@ -26,19 +26,19 @@ get_frets(fretboard::Fretboard) = fretboard.frets
 """
 $(SIGNATURES)
 
-Return the tuning, as a vector of `Note`s.
+Return the tuning, as a vector of `Pitch`s.
 """
 get_tuning(fretboard::Fretboard) = fretboard.tuning
 
 """
 Standard tuning for 6-string guitar.
 """
-const STANDARD_TUNING = [note"E2", note"A2", note"D3", note"G3", note"B3", note"E4"]
+const STANDARD_TUNING = [pitch"E2", pitch"A2", pitch"D3", pitch"G3", pitch"B3", pitch"E4"]
 
 """
 Open D tuning for 6-string guitar.
 """
-const OPEN_D_TUNING = [note"D2", note"A2", note"D3", note"F♯3", note"A3", note"D4"]
+const OPEN_D_TUNING = [pitch"D2", pitch"A2", pitch"D3", pitch"F♯3", pitch"A3", pitch"D4"]
 
 """
 Abstract type for fretboard canvases, used only for code organization, not part of the API.
@@ -155,9 +155,9 @@ function annotate_fret!(fretboard_canvas::CharFretboardCanvas, string::Integer,
 end
 
 function annotate_matches!(f, fretboard_canvas::CharFretboardCanvas)
-    for (string, open_note) in enumerate(get_tuning(fretboard_canvas))
+    for (string, open_pitch) in enumerate(get_tuning(fretboard_canvas))
         for fret in 0:get_frets(fretboard_canvas)
-            annotation = f(string, open_note, open_note + Semitones(fret))
+            annotation = f(string, open_pitch, open_pitch + Semitones(fret))
             if !isnothing(annotation)
                 annotate_fret!(fretboard_canvas, string, fret, annotation)
             end
@@ -167,15 +167,15 @@ function annotate_matches!(f, fretboard_canvas::CharFretboardCanvas)
 end
 
 struct AnnotatePitchClass{T}
-    note::Note
+    pitch::Pitch
     annotation::T
 end
 
-(a::AnnotatePitchClass)(_, _, note) = a.note ≂ note ? a.annotation : nothing
+(a::AnnotatePitchClass)(_, _, pitch) = a.pitch ≂ pitch ? a.annotation : nothing
 
-function annotate_chord!(fretboard_canvas::CharFretboardCanvas, base_note, chord)
+function annotate_chord!(fretboard_canvas::CharFretboardCanvas, base_pitch, chord)
     for interval in chord
-        annotate_matches!(AnnotatePitchClass(base_note + interval.semitones,
+        annotate_matches!(AnnotatePitchClass(base_pitch + interval.semitones,
                                              "(" * interval.label * ")"),
                           fretboard_canvas)
     end
