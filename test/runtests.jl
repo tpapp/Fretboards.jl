@@ -1,8 +1,8 @@
 using Fretboards
-using Fretboards: parse_note
+using Fretboards: parse_pitch
 using Test
 
-@testset "note parsing and representation" begin
+@testset "pitch parsing and representation" begin
     maybe0 = ["", "0"]
     sharps = ["♯", "#"]
     flats = ["♭", "b"]
@@ -16,31 +16,31 @@ using Test
                  init = [lowercase(str), uppercase(str)])
     end
 
-    @test all(parse_note.(all_combinations('c', maybe0)) .== Note(0))
-    @test repr(Note(0)) == "note\"C0\""
-    @test all(parse_note.(all_combinations('c', sharps, maybe0)) .== Note(1))
-    @test repr(Note(1)) == "note\"C♯0\""
-    @test all(parse_note.(all_combinations('c', flats, maybe0)) .== Note(-1))
-    @test repr(Note(-1)) == "note\"B-1\""
-    @test all(parse_note.(all_combinations('A', "2")) .== Note(24 + 9))
-    @test repr(Note(24 + 9)) == "note\"A2\""
-    @test all(parse_note.(all_combinations('A', flats, "2")) .== Note(24 + 8))
-    @test repr(Note(24 + 8)) == "note\"G♯2\""
-    @test all(parse_note.(all_combinations('A', sharps, "2")) .== Note(24 + 10))
-    @test repr(Note(24 + 10)) == "note\"A♯2\""
+    @test all(parse_pitch.(all_combinations('c', maybe0)) .== Pitch(0))
+    @test repr(Pitch(0)) == "pitch\"C0\""
+    @test all(parse_pitch.(all_combinations('c', sharps, maybe0)) .== Pitch(1))
+    @test repr(Pitch(1)) == "pitch\"C♯0\""
+    @test all(parse_pitch.(all_combinations('c', flats, maybe0)) .== Pitch(-1))
+    @test repr(Pitch(-1)) == "pitch\"B-1\""
+    @test all(parse_pitch.(all_combinations('A', "2")) .== Pitch(24 + 9))
+    @test repr(Pitch(24 + 9)) == "pitch\"A2\""
+    @test all(parse_pitch.(all_combinations('A', flats, "2")) .== Pitch(24 + 8))
+    @test repr(Pitch(24 + 8)) == "pitch\"G♯2\""
+    @test all(parse_pitch.(all_combinations('A', sharps, "2")) .== Pitch(24 + 10))
+    @test repr(Pitch(24 + 10)) == "pitch\"A♯2\""
 
-    @test_throws ArgumentError parse_note("x")    # invalid note
-    @test_throws ArgumentError parse_note("ax")   # trailing clutter
-    @test_throws ArgumentError parse_note("a-1x") # trailing clutter
+    @test_throws ArgumentError parse_pitch("x")    # invalid pitch
+    @test_throws ArgumentError parse_pitch("ax")   # trailing clutter
+    @test_throws ArgumentError parse_pitch("a-1x") # trailing clutter
 end
 
-@testset "note calculations" begin
-    @test Note(20) - Note(10) == Semitones(10)
-    @test Note(20) - Note(10) == Semitones(10)
-    @test Note(10) + Semitones(20) == Note(30)
-    @test Note(10) - Semitones(20) == Note(-10)
-    @test note"A♯" ≂ note"A♯-1" ≂ note"A♯2"
-    @test !(note"C" ≂ note"D")
+@testset "pitch calculations" begin
+    @test Pitch(20) - Pitch(10) == Semitones(10)
+    @test Pitch(20) - Pitch(10) == Semitones(10)
+    @test Pitch(10) + Semitones(20) == Pitch(30)
+    @test Pitch(10) - Semitones(20) == Pitch(-10)
+    @test pitch"A♯" ≂ pitch"A♯-1" ≂ pitch"A♯2"
+    @test !(pitch"C" ≂ pitch"D")
 end
 
 @testset "fretboard basics" begin
