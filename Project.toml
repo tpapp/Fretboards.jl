@@ -11,6 +11,8 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [compat]
 ArgCheck = "2"
+DocStringExtensions = "0.8"
+UnPack = "1"
 julia = "^1"
 
 [extras]
