@@ -1,8 +1,10 @@
-export Pitch, Semitones, ≂, @pitch_str
+export Pitch, ≂, @pitch_str
 
 """
 A pitch (pitch). It is recommended that the `pitch"..."` constructor is used, see
 [`parse_pitch`](@ref).
+
+`+` and `-` with integers change the pitch by a given number of semitones.
 """
 struct Pitch
     "Semitones relative to C₀."
@@ -11,22 +13,15 @@ end
 
 Broadcast.broadcastable(pitch::Pitch) = Ref(pitch)
 
-"""
-Semitones (relative pitch). Used in calculations, `+` and `-` are supported.
-"""
-struct Semitones
-    semitones::Int
-end
+Broadcast.broadcastable(semitones::Integer) = Ref(semitones)
 
-Broadcast.broadcastable(semitones::Semitones) = Ref(semitones)
+Base.hash(pitch::Pitch, h::UInt) = hash(hash(pitch.semitones, 0x3d948cfcb6fb103d), h)
 
-# FIXME hash equality
+Base.:+(pitch::Pitch, semitones::Integer) = Pitch(pitch.semitones + semitones)
 
-Base.:+(pitch::Pitch, semitones::Semitones) = Pitch(pitch.semitones + semitones.semitones)
+Base.:-(pitch::Pitch, semitones::Integer) = Pitch(pitch.semitones - semitones)
 
-Base.:-(pitch::Pitch, semitones::Semitones) = Pitch(pitch.semitones - semitones.semitones)
-
-Base.:-(pitch1::Pitch, pitch2::Pitch) = Semitones(pitch1.semitones - pitch2.semitones)
+Base.:-(pitch1::Pitch, pitch2::Pitch) = pitch1.semitones - pitch2.semitones
 
 """
 $(SIGNATURES)
@@ -36,6 +31,11 @@ are in the same *pitch class*.
 """
 ≂(pitch1::Pitch, pitch2::Pitch) = mod(pitch1.semitones, 12) == mod(pitch2.semitones, 12)
 
+"""
+Pitch names for printing.
+
+We always print sharp notes, eg `C♯` instead of `D♭`.
+"""
 const PITCH_NAMES = ["C", "C♯", "D", "D♯", "E", "F",
                     "F♯", "G", "G♯", "A", "A♯", "B"]
 
@@ -102,4 +102,42 @@ See [`parse_pitch`](@ref) for a full description.
 """
 macro pitch_str(str)
     parse_pitch(str)
+end
+
+####
+#### named intervals
+####
+
+"""
+Some named intervals, not exported from the main module, use `using Fretboards.Intervals` to
+import.
+"""
+module Intervals
+
+export m3, M3, P4, d5, P5, A5, m7, M7
+
+"Minor 3rd."
+const m3 = 3
+
+"Major 3rd."
+const M3 = 4
+
+"Perfect 4th."
+const P4 = 5
+
+"Diminished 5th."
+const d5 = 6
+
+"Perfect 5th."
+const P5 = 7
+
+"Augmented 5th."
+const A5 = 8
+
+"Minor 7th."
+const m7 = 10
+
+"Major 7th."
+const M7 = 11
+
 end

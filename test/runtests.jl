@@ -35,16 +35,10 @@ using Test
 end
 
 @testset "pitch calculations" begin
-    @test Pitch(20) - Pitch(10) == Semitones(10)
-    @test Pitch(20) - Pitch(10) == Semitones(10)
-    @test Pitch(10) + Semitones(20) == Pitch(30)
-    @test Pitch(10) - Semitones(20) == Pitch(-10)
+    @test Pitch(20) - Pitch(10) == 10
+    @test Pitch(20) - Pitch(10) == 10
+    @test Pitch(10) + 20 == Pitch(30)
+    @test Pitch(10) - 20 == Pitch(-10)
     @test pitch"A♯" ≂ pitch"A♯-1" ≂ pitch"A♯2"
     @test !(pitch"C" ≂ pitch"D")
-end
-
-@testset "fretboard basics" begin
-    @test fret_position(9) ≈ 0.405396 atol = 1e-5
-    @test fret_position(12) == 0.5
-    @test fret_position(19) ≈ 0.666290 atol = 1e-5
 end
